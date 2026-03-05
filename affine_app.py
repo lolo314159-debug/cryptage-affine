@@ -90,8 +90,8 @@ st.info(f"**Formule appliquée :** $x \\xrightarrow{{f}} {a}x + {b} = 26q + r$")
 st.subheader("🔍 Exemple de calcul détaillé")
 
 # On définit la lettre exemple
-lettre_test = "M"
-x_test = ord(lettre_test) - ord('A')  # Rang de M (12)
+lettre_test = "L"
+x_test = ord(lettre_test) - ord('A')  # Rang de L (11)
 y_test = a * x_test + b
 q_test = y_test // 26
 r_test = y_test % 26
@@ -103,7 +103,7 @@ st.write(f"Prenons la lettre **{lettre_test}** :")
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    st.markdown(f"1. Rang de la lettre :  \n$x = {x_test}$  \n(A=0, B=1, ..., M=12)")
+    st.markdown(f"1. Rang de la lettre :  \n$x = {x_test}$  \n(A=0, B=1, ..., L=11)")
 
 with c2:
     st.markdown(f"2. Transformation :  \n$y = {a} \\times {x_test} + {b}$  \n$y = {y_test}$")
