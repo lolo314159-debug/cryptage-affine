@@ -1,61 +1,86 @@
 import streamlit as st
 import pandas as pd
 import math
+import unicodedata
+import re
 
-st.set_page_config(page_title="Codage Affine - Analyse Pédagogique", layout="wide")
+st.set_page_config(page_title="Codage Affine Pro", layout="wide")
 
-st.title("📊 Structure du Cryptage Affine")
-st.write("Visualisation de $f(x) = ax + b$ selon le quotient et le reste de la division par 26.")
+st.title("🔐 Cryptage Affine Interactif")
 
-# --- Paramètres ---
-st.sidebar.header("Réglages")
-a = st.sidebar.number_input("Coefficient a (multiplicateur)", value=3, step=1)
-b = st.sidebar.number_input("Coefficient b (décalage)", value=2, step=1)
+# --- Fonctions de traitement de texte ---
+def nettoyer_texte(texte):
+    # 1. Passage en majuscules
+    texte = texte.upper()
+    # 2. Suppression des accents (Normalisation NFKD)
+    texte = "".join(c for c in unicodedata.normalize('NFD', texte) if unicodedata.category(c) != 'Mn')
+    # 3. Remplacer tout ce qui n'est pas A-Z par un espace
+    texte = re.sub(r'[^A-Z]', ' ', texte)
+    return texte
 
-# Analyse mathématique
+def crypter_affine(texte, a, b):
+    resultat = ""
+    for lettre in texte:
+        if lettre == " ":
+            resultat += " "
+        else:
+            x = ord(lettre) - ord('A')
+            r = (a * x + b) % 26
+            resultat += chr(r + ord('A'))
+    return resultat
+
+# --- Barre latérale : Paramètres ---
+st.sidebar.header("⚙️ Paramètres de la clé")
+a = st.sidebar.number_input("Coefficient a", value=3, step=1)
+b = st.sidebar.number_input("Coefficient b (Décalage)", value=2, step=1)
+
 pgcd = math.gcd(a, 26)
 if pgcd != 1:
-    st.sidebar.error(f"⚠️ PGCD({a}, 26) = {pgcd}. Attention : des collisions vont apparaître (plusieurs lettres au même endroit).")
+    st.sidebar.error(f"⚠️ PGCD({a}, 26) = {pgcd}. Le codage n'est pas réversible !")
 else:
-    st.sidebar.success(f"✅ PGCD({a}, 26) = 1. Le codage est une permutation parfaite.")
+    st.sidebar.success("✅ Clé valide (Bijection)")
 
-# --- Préparation des données ---
+# --- Section 1 : Cryptage de message ---
+st.subheader("📝 Tester un message")
+message_u = st.text_area("Entrez le texte à crypter :", "Le codage affine, c'est génial !")
+
+if message_u:
+    message_propre = nettoyer_texte(message_u)
+    message_code = crypter_affine(message_propre, a, b)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.caption("Texte prétraité (sans accents / spécial)")
+        st.code(message_propre)
+    with col2:
+        st.caption("Texte crypté")
+        st.code(message_code)
+
+# --- Section 2 : Visualisation Mathématique ---
+st.divider()
+st.subheader("📊 Structure du Codage (Quotients et Restes)")
+
 alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-# Calcul du quotient maximum pour définir le nombre de lignes
 max_q = (a * 25 + b) // 26
 lignes_quotient = range(max_q + 1)
 
-# Création du dictionnaire pour le tableau
-# La première ligne est l'alphabet de référence (les restes de 0 à 25)
 tableau_data = {"Position (Reste)": [i for i in range(26)]}
-tableau_data["Alphabet (Reste)"] = alphabet
+tableau_data["Alphabet cible"] = alphabet
 
-# Initialisation des lignes de quotients
 for q in lignes_quotient:
     tableau_data[f"Quotient q = {q}"] = [""] * 26
 
-# Remplissage : on place la lettre d'origine x dans la case (q, r)
 for x in range(26):
     y = a * x + b
     q = y // 26
     r = y % 26
-    
-    # Si la case est déjà occupée (cas pgcd != 1), on concatène pour montrer la collision
+    cell_content = alphabet[x]
     if tableau_data[f"Quotient q = {q}"][r] == "":
-        tableau_data[f"Quotient q = {q}"][r] = alphabet[x]
+        tableau_data[f"Quotient q = {q}"][r] = cell_content
     else:
-        tableau_data[f"Quotient q = {q}"][r] += f", {alphabet[x]}"
+        tableau_data[f"Quotient q = {q}"][r] += f", {cell_content}"
 
-# Conversion en DataFrame et pivotement pour avoir l'alphabet en ligne
 df = pd.DataFrame(tableau_data).set_index("Position (Reste)").transpose()
-
-# --- Affichage ---
-st.subheader("Tableau de répartition")
-st.write("Ce tableau montre quelle lettre d'origine arrive sur quel reste (colonne) après combien de 'tours' de 26 (ligne).")
-
-# On utilise st.table pour un rendu fixe et propre pour les élèves
 st.table(df)
 
-# --- Rappel de la formule ---
-st.info(f"**Formule appliquée :** $x \\xrightarrow{{f}} {a}x + {b} = 26q + r$")
+st.info(f"**Rappel Mathématique :** Chaque lettre de l'alphabet (ligne 1) est remplacée par la lettre située dans sa colonne. La ligne indique combien de fois on a 'bouclé' sur l'alphabet (le quotient de la division par 26).")
