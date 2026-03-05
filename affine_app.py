@@ -1,71 +1,61 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import math
 
-st.set_page_config(page_title="Visualisation Codage Affine", layout="wide")
+st.set_page_config(page_title="Codage Affine - Analyse Pédagogique", layout="wide")
 
-st.title("🧪 Visualisation du Cryptage Affine")
-st.write("Analyse de la transformation $f(x) = ax + b$")
+st.title("📊 Structure du Cryptage Affine")
+st.write("Visualisation de $f(x) = ax + b$ selon le quotient et le reste de la division par 26.")
 
-# --- Barre latérale pour les paramètres ---
-st.sidebar.header("Paramètres de codage")
-a = st.sidebar.number_input("Coefficient a", value=3, step=1)
-b = st.sidebar.number_input("Coefficient b (Décalage)", value=2, step=1)
+# --- Paramètres ---
+st.sidebar.header("Réglages")
+a = st.sidebar.number_input("Coefficient a (multiplicateur)", value=3, step=1)
+b = st.sidebar.number_input("Coefficient b (décalage)", value=2, step=1)
 
-# Vérification mathématique du PGCD
-pgcd_a_26 = math.gcd(a, 26)
-if pgcd_a_26 != 1:
-    st.sidebar.error(f"⚠️ pgcd({a}, 26) = {pgcd_a_26}. Le codage ne sera pas bijectif (plusieurs lettres auront le même code).")
+# Analyse mathématique
+pgcd = math.gcd(a, 26)
+if pgcd != 1:
+    st.sidebar.error(f"⚠️ PGCD({a}, 26) = {pgcd}. Attention : des collisions vont apparaître (plusieurs lettres au même endroit).")
 else:
-    st.sidebar.success(f"✅ pgcd({a}, 26) = 1. Le codage est valide.")
+    st.sidebar.success(f"✅ PGCD({a}, 26) = 1. Le codage est une permutation parfaite.")
 
-# --- Calculs ---
-alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-data = []
+# --- Préparation des données ---
+alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-# On calcule pour chaque lettre son image, son quotient et son reste
+# Calcul du quotient maximum pour définir le nombre de lignes
+max_q = (a * 25 + b) // 26
+lignes_quotient = range(max_q + 1)
+
+# Création du dictionnaire pour le tableau
+# La première ligne est l'alphabet de référence (les restes de 0 à 25)
+tableau_data = {"Position (Reste)": [i for i in range(26)]}
+tableau_data["Alphabet (Reste)"] = alphabet
+
+# Initialisation des lignes de quotients
+for q in lignes_quotient:
+    tableau_data[f"Quotient q = {q}"] = [""] * 26
+
+# Remplissage : on place la lettre d'origine x dans la case (q, r)
 for x in range(26):
     y = a * x + b
     q = y // 26
     r = y % 26
-    data.append({
-        "Original": alphabet[x],
-        "x": x,
-        "f(x)": y,
-        "Quotient (q)": q,
-        "Reste (r)": r,
-        "Codé": alphabet[r]
-    })
+    
+    # Si la case est déjà occupée (cas pgcd != 1), on concatène pour montrer la collision
+    if tableau_data[f"Quotient q = {q}"][r] == "":
+        tableau_data[f"Quotient q = {q}"][r] = alphabet[x]
+    else:
+        tableau_data[f"Quotient q = {q}"][r] += f", {alphabet[x]}"
 
-df_calc = pd.DataFrame(data)
-
-# --- Construction du tableau visuel ---
-# On détermine le quotient max pour définir le nombre de lignes
-max_q = df_calc["Quotient (q)"].max()
-
-# Création d'une matrice vide remplie d'espaces
-# Colonnes de 0 à 25, Lignes de 0 à max_q
-grid = np.full((max_q + 1, 26), "", dtype=object)
-
-# Remplissage de la grille
-# La ligne 0 contient l'alphabet original (en option, ou on commence à la ligne des restes)
-for _, row in df_calc.iterrows():
-    grid[row["Quotient (q)"], row["Reste (r)"]] = f"{row['Original']}→{row['Codé']}"
-
-df_grid = pd.DataFrame(grid, columns=[i for i in range(26)])
+# Conversion en DataFrame et pivotement pour avoir l'alphabet en ligne
+df = pd.DataFrame(tableau_data).set_index("Position (Reste)").transpose()
 
 # --- Affichage ---
-st.subheader("Structure du Codage")
+st.subheader("Tableau de répartition")
+st.write("Ce tableau montre quelle lettre d'origine arrive sur quel reste (colonne) après combien de 'tours' de 26 (ligne).")
 
-# Ligne de référence : L'alphabet source
-st.write("**Alphabet d'origine (position x) :**")
-st.table(pd.DataFrame([list(alphabet)], columns=[i for i in range(26)]))
+# On utilise st.table pour un rendu fixe et propre pour les élèves
+st.table(df)
 
-st.write("**Répartition par Quotient (lignes) et Reste (colonnes) :**")
-st.write("Chaque cellule montre la lettre d'origine et sa transformation.")
-st.dataframe(df_grid)
-
-# --- Détails techniques ---
-with st.expander("Voir le détail des calculs"):
-    st.table(df_calc)
+# --- Rappel de la formule ---
+st.info(f"**Formule appliquée :** $x \\xrightarrow{{f}} {a}x + {b} = 26q + r$")
