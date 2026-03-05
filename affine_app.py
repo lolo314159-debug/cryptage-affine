@@ -86,3 +86,29 @@ st.table(df)
 st.info(f"**Rappel Mathématique :** Chaque lettre de l'alphabet (ligne 1) est remplacée par la lettre située dans sa colonne. La ligne indique combien de fois on a 'bouclé' sur l'alphabet (le quotient de la division par 26).")
 # --- Rappel de la formule ---
 st.info(f"**Formule appliquée :** $x \\xrightarrow{{f}} {a}x + {b} = 26q + r$")
+# --- Exemple détaillé avec la lettre M ---
+st.subheader("🔍 Exemple de calcul détaillé")
+
+# On définit la lettre exemple
+lettre_test = "M"
+x_test = ord(lettre_test) - ord('A')  # Rang de M (12)
+y_test = a * x_test + b
+q_test = y_test // 26
+r_test = y_test % 26
+lettre_codee = chr(r_test + ord('A'))
+
+st.write(f"Prenons la lettre **{lettre_test}** :")
+
+# Utilisation de colonnes pour une présentation "tableau noir"
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    st.markdown(f"**1. Rang de la lettre** \n$x = {x_test}$  \n(A=0, B=1, ..., M=12)")
+
+with c2:
+    st.markdown(f"**2. Transformation** \n$y = {a} \\times {x_test} + {b}$  \n$y = {y_test}$")
+
+with c3:
+    st.markdown(f"**3. Division par 26** \n${y_test} = 26 \\times \\mathbf{{{q_test}}} + \\mathbf{{{r_test}}}$  \nLe reste est **{r_test}**")
+
+st.success(f"👉 La lettre **{lettre_test}** (rang {x_test}) devient la lettre **{lettre_codee}** (rang {r_test}).")
