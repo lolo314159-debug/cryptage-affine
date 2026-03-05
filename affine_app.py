@@ -84,3 +84,5 @@ df = pd.DataFrame(tableau_data).set_index("Position (Reste)").transpose()
 st.table(df)
 
 st.info(f"**Rappel Mathématique :** Chaque lettre de l'alphabet (ligne 1) est remplacée par la lettre située dans sa colonne. La ligne indique combien de fois on a 'bouclé' sur l'alphabet (le quotient de la division par 26).")
+# --- Rappel de la formule ---
+st.info(f"**Formule appliquée :** $x \\xrightarrow{{f}} {a}x + {b} = 26q + r$")
