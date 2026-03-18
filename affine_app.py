@@ -69,7 +69,7 @@ lignes_quotient = [f"Quotient q = {q}" for q in range(q_min, q_max + 1)]
 
 # 2. Initialisation du tableau avec l'alphabet de base en ligne 1
 # On crée un DataFrame vide avec 26 colonnes (0 à 25)
-df_grille = pd.DataFrame("", index=["Alphabet (Reste)"] + lignes_quotient, columns=range(26))
+df_grille = pd.DataFrame("", index=["Alphabet"] + lignes_quotient, columns=range(26))
 
 # Remplissage de la ligne 1 : Alphabet de base (le "Reste" cible)
 df_grille.iloc[0] = alphabet
@@ -79,16 +79,16 @@ for x in range(26):
     y = a * x + b
     q = y // 26
     r = y % 26
-    lettre_origine = alphabet[x]
+    lettre_codee = alphabet[r]
     
     label_ligne = f"Quotient q = {q}"
     
     # On ajoute la lettre dans la case correspondante
     # (Gestion du cas où plusieurs lettres tomberaient dans la même case si PGCD != 1)
     if df_grille.at[label_ligne, r] == "":
-        df_grille.at[label_ligne, r] = lettre_origine
+        df_grille.at[label_ligne, r] = lettre_codee
     else:
-        df_grille.at[label_ligne, r] += f", {lettre_origine}"
+        df_grille.at[label_ligne, r] += f", {lettre_codee}"
 
 # 4. Affichage
 st.table(df_grille)
