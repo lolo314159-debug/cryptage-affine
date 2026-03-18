@@ -56,32 +56,45 @@ if message_u:
         st.caption("Texte crypté")
         st.code(message_code)
 
-# --- Section 2 : Visualisation Mathématique ---
+# --- Section 2 : Visualisation Mathématique (VERSION CORRIGÉE) ---
 st.divider()
-st.subheader("📊 Structure du Codage (Quotients et Restes)")
+st.subheader("📊 Détail du calcul par lettre")
 
 alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-max_q = (a * 25 + b) // 26
-lignes_quotient = range(max_q + 1)
 
-tableau_data = {"Position (Reste)": [i for i in range(26)]}
-tableau_data["Alphabet cible"] = alphabet
-
-for q in lignes_quotient:
-    tableau_data[f"Quotient q = {q}"] = [""] * 26
+# 1. Préparation des données pour le tableau
+donnees_calcul = []
 
 for x in range(26):
+    lettre_origine = alphabet[x]
     y = a * x + b
     q = y // 26
     r = y % 26
-    cell_content = alphabet[x]
-    if tableau_data[f"Quotient q = {q}"][r] == "":
-        tableau_data[f"Quotient q = {q}"][r] = cell_content
-    else:
-        tableau_data[f"Quotient q = {q}"][r] += f", {cell_content}"
+    lettre_codee = alphabet[r]
+    
+    donnees_calcul.append({
+        "Lettre Départ": lettre_origine,
+        "x (Rang)": x,
+        "ax + b": y,
+        "q (Quotient)": q,
+        "r (Reste)": r,
+        "Lettre Finale": lettre_codee
+    })
 
-df = pd.DataFrame(tableau_data).set_index("Position (Reste)").transpose()
-st.table(df)
+# 2. Création du DataFrame et inversion (Transpose)
+# On met "Lettre Départ" en index pour qu'elle devienne l'en-tête après la transposition
+df_math = pd.DataFrame(donnees_calcul).set_index("Lettre Départ").transpose()
+
+# 3. Affichage
+st.table(df_math)
+
+st.info(f"""
+**Comment lire ce tableau :**
+* La première ligne est votre **alphabet source**.
+* **ax + b** est la valeur brute avant le modulo.
+* **q (Quotient)** indique combien de "tours" d'alphabet ont été faits (26, 52, etc.).
+* **r (Reste)** est la position finale, qui donne la **Lettre Finale**.
+""")
 
 st.info(f"**Rappel Mathématique :** Chaque lettre de l'alphabet (ligne 1) est remplacée par la lettre située dans sa colonne. La ligne indique combien de fois on a 'bouclé' sur l'alphabet (le quotient de la division par 26).")
 # --- Rappel de la formule ---
