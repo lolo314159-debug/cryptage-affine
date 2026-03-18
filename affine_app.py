@@ -56,43 +56,49 @@ if message_u:
         st.caption("Texte crypté")
         st.code(message_code)
 
-# --- Section 2 : Visualisation Mathématique (VERSION INVERSÉE) ---
+# --- Section 2 : Visualisation Mathématique (Grille par Quotient) ---
 st.divider()
-st.subheader("📊 Structure du Codage (Étape par Étape)")
+st.subheader("📊 Répartition par Quotient et Reste")
 
 alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-# 1. On prépare les données en partant de l'alphabet de départ
-# Chaque colonne sera une lettre (A, B, C...)
-colonnes = alphabet
-data = {}
+# 1. Calcul des bornes du quotient pour créer les lignes
+q_min = (a * 0 + b) // 26
+q_max = (a * 25 + b) // 26
+lignes_quotient = [f"Quotient q = {q}" for q in range(q_min, q_max + 1)]
 
-# Ligne 1 : Position initiale x
-data["Position x (Entrée)"] = [i for i in range(26)]
+# 2. Initialisation du tableau avec l'alphabet de base en ligne 1
+# On crée un DataFrame vide avec 26 colonnes (0 à 25)
+df_grille = pd.DataFrame("", index=["Alphabet (Reste)"] + lignes_quotient, columns=range(26))
 
-# Ligne 2 : Calcul intermédiaire y = ax + b
-data[f"Calcul ({a}x + {b})"] = [(a * i + b) for i in range(26)]
+# Remplissage de la ligne 1 : Alphabet de base (le "Reste" cible)
+df_grille.iloc[0] = alphabet
 
-# Ligne 3 : Quotient q (combien de tours de 26)
-data["Quotient q"] = [(a * i + b) // 26 for i in range(26)]
+# 3. Remplissage des cellules avec les lettres d'origine
+for x in range(26):
+    y = a * x + b
+    q = y // 26
+    r = y % 26
+    lettre_origine = alphabet[x]
+    
+    label_ligne = f"Quotient q = {q}"
+    
+    # On ajoute la lettre dans la case correspondante
+    # (Gestion du cas où plusieurs lettres tomberaient dans la même case si PGCD != 1)
+    if df_grille.at[label_ligne, r] == "":
+        df_grille.at[label_ligne, r] = lettre_origine
+    else:
+        df_grille.at[label_ligne, r] += f", {lettre_origine}"
 
-# Ligne 4 : Reste r (Position finale)
-data["Reste r (Modulo 26)"] = [(a * i + b) % 26 for i in range(26)]
+# 4. Affichage
+st.table(df_grille)
 
-# Ligne 5 : Lettre codée
-data["Lettre Cryptée"] = [alphabet[(a * i + b) % 26] for i in range(26)]
-
-# 2. Création du DataFrame
-# On utilise les lettres de l'alphabet comme colonnes
-df_inverse = pd.DataFrame(data, index=alphabet).transpose()
-
-# 3. Affichage
-st.table(df_inverse)
-
-st.info(f"**Lecture du tableau :** La première ligne (en gras) représente votre message en clair. En descendant, vous voyez la transformation mathématique : $x \\rightarrow ax+b \\rightarrow q \\text{ et } r \\rightarrow$ Résultat final.")
-
-st.info(f"**Rappel Mathématique :** Chaque lettre de l'alphabet (ligne 1) est remplacée par la lettre située dans sa colonne. La ligne indique combien de fois on a 'bouclé' sur l'alphabet (le quotient de la division par 26).")
-# --- Rappel de la formule ---
+st.info(f"""
+**Lecture du tableau :**
+* La **Ligne 1** est l'alphabet de destination (le reste $r$ de la division par 26).
+* Les **Lignes suivantes** affichent les lettres d'origine placées selon leur quotient $q$.
+* **Exemple :** Si la lettre **A** est dans la colonne **C** sur la ligne **Quotient 0**, cela signifie que $f(A)$ donne un reste de 2 (C) avec un quotient de 0.
+""")# --- Rappel de la formule ---
 st.info(f"**Formule appliquée :** $x \\xrightarrow{{f}} {a}x + {b} = 26q + r$")
 # --- Exemple détaillé avec la lettre M ---
 st.subheader("🔍 Exemple de calcul détaillé")
