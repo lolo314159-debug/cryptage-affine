@@ -56,45 +56,40 @@ if message_u:
         st.caption("Texte crypté")
         st.code(message_code)
 
-# --- Section 2 : Visualisation Mathématique (VERSION CORRIGÉE) ---
+# --- Section 2 : Visualisation Mathématique (VERSION INVERSÉE) ---
 st.divider()
-st.subheader("📊 Détail du calcul par lettre")
+st.subheader("📊 Structure du Codage (Étape par Étape)")
 
 alphabet = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-# 1. Préparation des données pour le tableau
-donnees_calcul = []
+# 1. On prépare les données en partant de l'alphabet de départ
+# Chaque colonne sera une lettre (A, B, C...)
+colonnes = alphabet
+data = {}
 
-for x in range(26):
-    lettre_origine = alphabet[x]
-    y = a * x + b
-    q = y // 26
-    r = y % 26
-    lettre_codee = alphabet[r]
-    
-    donnees_calcul.append({
-        "Lettre Départ": lettre_origine,
-        "x (Rang)": x,
-        "ax + b": y,
-        "q (Quotient)": q,
-        "r (Reste)": r,
-        "Lettre Finale": lettre_codee
-    })
+# Ligne 1 : Position initiale x
+data["Position x (Entrée)"] = [i for i in range(26)]
 
-# 2. Création du DataFrame et inversion (Transpose)
-# On met "Lettre Départ" en index pour qu'elle devienne l'en-tête après la transposition
-df_math = pd.DataFrame(donnees_calcul).set_index("Lettre Départ").transpose()
+# Ligne 2 : Calcul intermédiaire y = ax + b
+data[f"Calcul ({a}x + {b})"] = [(a * i + b) for i in range(26)]
+
+# Ligne 3 : Quotient q (combien de tours de 26)
+data["Quotient q"] = [(a * i + b) // 26 for i in range(26)]
+
+# Ligne 4 : Reste r (Position finale)
+data["Reste r (Modulo 26)"] = [(a * i + b) % 26 for i in range(26)]
+
+# Ligne 5 : Lettre codée
+data["Lettre Cryptée"] = [alphabet[(a * i + b) % 26] for i in range(26)]
+
+# 2. Création du DataFrame
+# On utilise les lettres de l'alphabet comme colonnes
+df_inverse = pd.DataFrame(data, index=alphabet).transpose()
 
 # 3. Affichage
-st.table(df_math)
+st.table(df_inverse)
 
-st.info(f"""
-**Comment lire ce tableau :**
-* La première ligne est votre **alphabet source**.
-* **ax + b** est la valeur brute avant le modulo.
-* **q (Quotient)** indique combien de "tours" d'alphabet ont été faits (26, 52, etc.).
-* **r (Reste)** est la position finale, qui donne la **Lettre Finale**.
-""")
+st.info(f"**Lecture du tableau :** La première ligne (en gras) représente votre message en clair. En descendant, vous voyez la transformation mathématique : $x \\rightarrow ax+b \\rightarrow q \\text{ et } r \\rightarrow$ Résultat final.")
 
 st.info(f"**Rappel Mathématique :** Chaque lettre de l'alphabet (ligne 1) est remplacée par la lettre située dans sa colonne. La ligne indique combien de fois on a 'bouclé' sur l'alphabet (le quotient de la division par 26).")
 # --- Rappel de la formule ---
