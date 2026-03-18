@@ -69,7 +69,7 @@ lignes_quotient = [f"Quotient q = {q}" for q in range(q_min, q_max + 1)]
 
 # 2. Initialisation du tableau avec l'alphabet de base en ligne 1
 # On crée un DataFrame vide avec 26 colonnes (0 à 25)
-df_grille = pd.DataFrame("", index=["Alphabet"] + lignes_quotient, columns=range(26))
+df_grille = pd.DataFrame("", index=["Alphabet codé"] + lignes_quotient, columns=range(26))
 
 # Remplissage de la ligne 1 : Alphabet de base (le "Reste" cible)
 df_grille.iloc[0] = alphabet
