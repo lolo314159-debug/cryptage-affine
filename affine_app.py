@@ -79,16 +79,16 @@ for x in range(26):
     y = a * x + b
     q = y // 26
     r = y % 26
-    lettre_codee = alphabet[r]
+    lettre_base = alphabet[x]
     
     label_ligne = f"Quotient q = {q}"
     
     # On ajoute la lettre dans la case correspondante
     # (Gestion du cas où plusieurs lettres tomberaient dans la même case si PGCD != 1)
     if df_grille.at[label_ligne, r] == "":
-        df_grille.at[label_ligne, r] = lettre_codee
+        df_grille.at[label_ligne, r] = lettre_base
     else:
-        df_grille.at[label_ligne, r] += f", {lettre_codee}"
+        df_grille.at[label_ligne, r] += f", {lettre_base}"
 
 # 4. Affichage
 st.table(df_grille)
